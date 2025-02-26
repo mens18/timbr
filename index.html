@@ -3,34 +3,65 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Registrazione Timbratura</title>
+    <title>Timbratura Presenze</title>
+</head>
+<body>
+    <h2>Timbratura Presenze</h2>
+
+    <!-- Selezione del nome -->
+    <label for="nome">Seleziona il tuo nome:</label>
+    <select id="nome">
+        <option value="Mennuni Francesco">Mennuni Francesco</option>
+        <option value="Luca Bianchi">Luca Bianchi</option>
+        <option value="Anna Verdi">Anna Verdi</option>
+        <option value="Giulia Neri">Giulia Neri</option>
+    </select>
+    
+    <br><br>
+
+    <!-- Selezione tipo di timbratura -->
+    <label for="tipo">Tipo di timbratura:</label>
+    <select id="tipo">
+        <option value="ingresso">Ingresso</option>
+        <option value="uscita">Uscita</option>
+    </select>
+
+    <br><br>
+
+    <button onclick="inviaDati()">Timbra</button>
+
+    <p id="messaggio"></p>
+
     <script>
-        function sendData() {
-            if ("geolocation" in navigator) {
-                navigator.geolocation.getCurrentPosition(function(position) {
-                    let lat = position.coords.latitude;
-                    let long = position.coords.longitude;
-                    let deviceId = navigator.userAgent; // Identificativo base del dispositivo
+        function inviaDati() {
+            let scriptUrl = "https://script.google.com/macros/s/AKfycbx7QE-mKK8daQHSrL7wbYXuxB-Ul-UqaxXS-zkW4SS4O3gxHjA1pHsqE9JwlD-R2svz/exec"; // Sostituisci con il link della tua Web App
 
-                    // URL della tua Web App Google Apps Script
-                    let scriptUrl = "https://script.google.com/macros/s/AKfycbyZjMUdLR6WmiTPbA7rrKURSc265KS-3WTEPaQPUj8SAnVor77uT9EWebAkcB2URqT7/exec";
+            // Prendere i dati selezionati
+            let nome = document.getElementById("nome").value;
+            let tipo = document.getElementById("tipo").value;
+            let deviceId = navigator.userAgent;  // Identificativo del dispositivo
 
-                    // Creazione dell'URL con i parametri
-                    let tipo = "ingresso"; // O "uscita", puoi modificarlo dinamicamente con un pulsante
-                    let fullUrl = `${scriptUrl}?gps=${lat},${long}&deviceId=${encodeURIComponent(deviceId)}&tipo=${tipo}`;
+            // Ottenere la posizione GPS
+            navigator.geolocation.getCurrentPosition(position => {
+                let lat = position.coords.latitude;
+                let long = position.coords.longitude;
 
-                    // Reindirizza automaticamente per registrare la timbratura
-                    window.location.href = fullUrl;
-                }, function(error) {
-                    alert("Errore nell'acquisizione del GPS: " + error.message);
-                });
-            } else {
-                alert("Geolocalizzazione non supportata!");
-            }
+                // Creare URL per invio dati
+                let fullUrl = `${scriptUrl}?gps=${lat},${long}&deviceId=${encodeURIComponent(deviceId)}&tipo=${tipo}&nome=${encodeURIComponent(nome)}`;
+
+                // Invia richiesta
+                fetch(fullUrl)
+                    .then(response => response.text())
+                    .then(data => {
+                        document.getElementById("messaggio").innerText = data; // Mostra messaggio di conferma o errore
+                    })
+                    .catch(error => {
+                        document.getElementById("messaggio").innerText = "Errore durante la timbratura.";
+                    });
+            }, () => {
+                document.getElementById("messaggio").innerText = "Errore: GPS non attivato.";
+            });
         }
     </script>
-</head>
-<body onload="sendData()">
-    <h2>Registrazione in corso...</h2>
 </body>
 </html>
