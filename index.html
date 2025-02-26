@@ -16,7 +16,8 @@
                     let scriptUrl = "https://script.google.com/macros/s/AKfycbyZjMUdLR6WmiTPbA7rrKURSc265KS-3WTEPaQPUj8SAnVor77uT9EWebAkcB2URqT7/exec";
 
                     // Creazione dell'URL con i parametri
-                    let fullUrl = `${scriptUrl}?gps=${lat},${long}&deviceId=${encodeURIComponent(deviceId)}`;
+                    let tipo = "ingresso"; // O "uscita", puoi modificarlo dinamicamente con un pulsante
+                    let fullUrl = `${scriptUrl}?gps=${lat},${long}&deviceId=${encodeURIComponent(deviceId)}&tipo=${tipo}`;
 
                     // Reindirizza automaticamente per registrare la timbratura
                     window.location.href = fullUrl;
