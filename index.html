@@ -3,63 +3,57 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Timbratura Presenze</title>
+    <title>Timbratura</title>
 </head>
 <body>
-    <h2>Timbratura Presenze</h2>
+    <h2>Registrazione Timbratura</h2>
 
-    <!-- Selezione del nome -->
-    <label for="nome">Seleziona il tuo nome:</label>
+    <label for="nome">Seleziona Nome:</label>
     <select id="nome">
         <option value="Mario Rossi">Mario Rossi</option>
         <option value="Luca Bianchi">Luca Bianchi</option>
-        <option value="Anna Verdi">Anna Verdi</option>
-        <option value="Giulia Neri">Giulia Neri</option>
+        <option value="Giulia Verdi">Giulia Verdi</option>
     </select>
-    
-    <br><br>
 
-    <!-- Selezione tipo di timbratura -->
-    <label for="tipo">Tipo di timbratura:</label>
+    <label for="tipo">Tipo:</label>
     <select id="tipo">
         <option value="ingresso">Ingresso</option>
         <option value="uscita">Uscita</option>
     </select>
 
-    <br><br>
+    <button onclick="inviaTimbratura()">Invia</button>
 
-    <button onclick="inviaDati()">Timbra</button>
-
-    <p id="messaggio"></p>
+    <p id="status"></p>
 
     <script>
-        function inviaDati() {
-            let scriptUrl = "https://script.google.com/macros/s/AKfycbyEDfHhdm2X5FdhX9kN-zdXdxYWL0-SzonLdI4dhgIGnYE3XXFrf6ym8TgNKGszuGzT/exec"; // Sostituisci con l'URL della tua Web App
+        const scriptUrl = "https://script.google.com/macros/s/AKfycbzvLxELPiew8KnQ_yoXkdSx2bXm-jtX_DcqBtSlwL4AcpoG9-m_IusAb5hg6gjkW3Sm/exec"; 
 
-            // Prendere i dati selezionati
+        function inviaTimbratura() {
             let nome = document.getElementById("nome").value;
             let tipo = document.getElementById("tipo").value;
-            let deviceId = navigator.userAgent;  // Identificativo del dispositivo
 
-            // Ottenere la posizione GPS
-            navigator.geolocation.getCurrentPosition(position => {
+            if (!navigator.geolocation) {
+                document.getElementById("status").innerText = "Errore: il tuo browser non supporta il GPS.";
+                return;
+            }
+
+            navigator.geolocation.getCurrentPosition(function(position) {
                 let lat = position.coords.latitude;
                 let long = position.coords.longitude;
+                let deviceId = navigator.userAgent;
 
-                // Creare URL per invio dati
                 let fullUrl = `${scriptUrl}?gps=${lat},${long}&deviceId=${encodeURIComponent(deviceId)}&tipo=${tipo}&nome=${encodeURIComponent(nome)}`;
-
-                // Invia richiesta
+                
                 fetch(fullUrl)
                     .then(response => response.text())
                     .then(data => {
-                        document.getElementById("messaggio").innerText = data; // Mostra messaggio di conferma o errore
+                        document.getElementById("status").innerText = data;
                     })
                     .catch(error => {
-                        document.getElementById("messaggio").innerText = "Errore durante la timbratura.";
+                        document.getElementById("status").innerText = "Errore di connessione.";
                     });
-            }, () => {
-                document.getElementById("messaggio").innerText = "Errore: GPS non attivato.";
+            }, function(error) {
+                document.getElementById("status").innerText = "Errore GPS: " + error.message;
             });
         }
     </script>
