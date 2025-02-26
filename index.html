@@ -1,0 +1,35 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Registrazione Timbratura</title>
+    <script>
+        function sendData() {
+            if ("geolocation" in navigator) {
+                navigator.geolocation.getCurrentPosition(function(position) {
+                    let lat = position.coords.latitude;
+                    let long = position.coords.longitude;
+                    let deviceId = navigator.userAgent; // Identificativo base del dispositivo
+
+                    // URL della tua Web App Google Apps Script
+                    let scriptUrl = "https://script.google.com/macros/s/AKfycbyZjMUdLR6WmiTPbA7rrKURSc265KS-3WTEPaQPUj8SAnVor77uT9EWebAkcB2URqT7/exec";
+
+                    // Creazione dell'URL con i parametri
+                    let fullUrl = `${scriptUrl}?gps=${lat},${long}&deviceId=${encodeURIComponent(deviceId)}`;
+
+                    // Reindirizza automaticamente per registrare la timbratura
+                    window.location.href = fullUrl;
+                }, function(error) {
+                    alert("Errore nell'acquisizione del GPS: " + error.message);
+                });
+            } else {
+                alert("Geolocalizzazione non supportata!");
+            }
+        }
+    </script>
+</head>
+<body onload="sendData()">
+    <h2>Registrazione in corso...</h2>
+</body>
+</html>
