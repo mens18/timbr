@@ -4,58 +4,63 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Timbratura</title>
+    <script>
+        function inviaDati() {
+            let nome = document.getElementById("nome").value;
+            let tipo = document.getElementById("tipo").value;
+            let sede = document.getElementById("sede").value; // Nuovo campo sede
+            let url = "https://script.google.com/macros/s/AKfycbz9qEykSeu0y_b_qiA2cnER98WpEIE7yjfqWT357M8Tbu6Z_CzcqOhNii4csfWoMSE/exec";
+
+            if (!nome || !tipo || !sede) {
+                alert("Compila tutti i campi!");
+                return;
+            }
+
+            navigator.geolocation.getCurrentPosition(
+                function(position) {
+                    let gps = position.coords.latitude + "," + position.coords.longitude;
+
+                    fetch("https://api64.ipify.org?format=json")
+                        .then(response => response.json())
+                        .then(data => {
+                            let ip = data.ip;
+
+                            let requestUrl = `${url}?nome=${encodeURIComponent(nome)}&tipo=${encodeURIComponent(tipo)}&sede=${encodeURIComponent(sede)}&gps=${encodeURIComponent(gps)}&ip=${encodeURIComponent(ip)}`;
+
+                            window.location.href = requestUrl;
+                        })
+                        .catch(error => alert("Errore nel recupero IP: " + error));
+                },
+                function(error) {
+                    alert("Errore nel recupero della posizione: " + error.message);
+                }
+            );
+        }
+    </script>
 </head>
 <body>
     <h2>Registrazione Timbratura</h2>
 
-    <label for="nome">Seleziona Nome:</label>
+    <label for="nome">Nome:</label>
     <select id="nome">
         <option value="Mario Rossi">Mario Rossi</option>
-        <option value="Luca Bianchi">Luca Bianchi</option>
-        <option value="Giulia Verdi">Giulia Verdi</option>
-    </select>
+        <option value="Luigi Verdi">Luigi Verdi</option>
+        <option value="Anna Bianchi">Anna Bianchi</option>
+    </select><br><br>
 
     <label for="tipo">Tipo:</label>
     <select id="tipo">
         <option value="ingresso">Ingresso</option>
         <option value="uscita">Uscita</option>
-    </select>
+    </select><br><br>
 
-    <button onclick="inviaTimbratura()">Invia</button>
+    <label for="sede">Sede:</label>
+    <select id="sede">
+        <option value="Sede Centrale">Sede Centrale</option>
+        <option value="Filiale Nord">Filiale Nord</option>
+        <option value="Filiale Sud">Filiale Sud</option>
+    </select><br><br>
 
-    <p id="status"></p>
-
-    <script>
-        const scriptUrl = "https://script.google.com/macros/s/AKfycbzvLxELPiew8KnQ_yoXkdSx2bXm-jtX_DcqBtSlwL4AcpoG9-m_IusAb5hg6gjkW3Sm/exec"; 
-
-        function inviaTimbratura() {
-            let nome = document.getElementById("nome").value;
-            let tipo = document.getElementById("tipo").value;
-
-            if (!navigator.geolocation) {
-                document.getElementById("status").innerText = "Errore: il tuo browser non supporta il GPS.";
-                return;
-            }
-
-            navigator.geolocation.getCurrentPosition(function(position) {
-                let lat = position.coords.latitude;
-                let long = position.coords.longitude;
-                let deviceId = navigator.userAgent;
-
-                let fullUrl = `${scriptUrl}?gps=${lat},${long}&deviceId=${encodeURIComponent(deviceId)}&tipo=${tipo}&nome=${encodeURIComponent(nome)}`;
-                
-                fetch(fullUrl)
-                    .then(response => response.text())
-                    .then(data => {
-                        document.getElementById("status").innerText = data;
-                    })
-                    .catch(error => {
-                        document.getElementById("status").innerText = "Errore di connessione.";
-                    });
-            }, function(error) {
-                document.getElementById("status").innerText = "Errore GPS: " + error.message;
-            });
-        }
-    </script>
+    <button onclick="inviaDati()">Invia</button>
 </body>
 </html>
