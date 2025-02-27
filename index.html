@@ -120,8 +120,9 @@
             const sede = document.getElementById("sede").value;
             const tipo = document.getElementById("tipo").value;
 
-            if (!gpsCoords || !deviceId || !fingerprint || !userIp) {
-                document.getElementById("risultato").innerText = "Errore: dati non ancora caricati. Riprova tra qualche secondo.";
+            if (!gpsCoords || !deviceId || !fingerprint || !userIp || 
+                gpsCoords === "" || deviceId === "" || fingerprint === "" || userIp === "") {
+                alert("⚠️ Attendere che tutti i dati siano caricati prima di inviare.");
                 return;
             }
 
