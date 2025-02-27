@@ -4,12 +4,42 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Timbratura</title>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/FingerprintJS/3.3.6/fingerprint2.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/fingerprintjs2@2.1.4/dist/fingerprint2.min.js"></script>
+    <script>
+        function inviaDati() {
+            let nome = document.getElementById("nome").value;
+            let tipo = document.getElementById("tipo").value;
+            let sede = document.getElementById("sede").value; // Nuovo campo sede
+            let url = "https://script.google.com/macros/s/AKfycbzMczlv553PVs-II_n_Tg_ELRmSW_RbmRq84ZqwEfsSwaZrhhRZNZ9tat7duGk_cvAd/exec";
+
+            if (!nome || !tipo || !sede) {
+                alert("Compila tutti i campi!");
+                return;
+            }
+
+            navigator.geolocation.getCurrentPosition(
+                function(position) {
+                    let gps = position.coords.latitude + "," + position.coords.longitude;
+
+                    fetch("https://api64.ipify.org?format=json")
+                        .then(response => response.json())
+                        .then(data => {
+                            let ip = data.ip;
+
+                            let requestUrl = `${url}?nome=${encodeURIComponent(nome)}&tipo=${encodeURIComponent(tipo)}&sede=${encodeURIComponent(sede)}&gps=${encodeURIComponent(gps)}&ip=${encodeURIComponent(ip)}`;
+
+                            window.location.href = requestUrl;
+                        })
+                        .catch(error => alert("Errore nel recupero IP: " + error));
+                },
+                function(error) {
+                    alert("Errore nel recupero della posizione: " + error.message);
+                }
+            );
+        }
+    </script>
 </head>
 <body>
-
-    <h2>Timbratura</h2>
+    <h2>Registrazione Timbratura</h2>
 
     <label for="nome">Nome:</label>
     <select id="nome">
@@ -41,9 +71,13 @@
         <option value="Spina Arianna">Spina Arianna</option>
         <option value="Trione Pietro">Trione Pietro</option>
         <option value="Vischi Vittoria">Vischi Vittoria</option>
-    </select>
+    </select><br><br>
 
-    <br><br>
+    <label for="tipo">Tipo:</label>
+    <select id="tipo">
+        <option value="ingresso">Ingresso</option>
+        <option value="uscita">Uscita</option>
+    </select><br><br>
 
     <label for="sede">Sede:</label>
     <select id="sede">
@@ -51,108 +85,8 @@
         <option value="Barletta">Barletta</option>
         <option value="Bisceglie">Bisceglie</option>
         <option value="Trani">Trani</option>
-    </select>
+    </select><br><br>
 
-    <br><br>
-
-    <label for="tipo">Tipo di timbratura:</label>
-    <select id="tipo">
-        <option value="ingresso">Ingresso</option>
-        <option value="uscita">Uscita</option>
-    </select>
-
-    <br><br>
-
-    <button onclick="inviaTimbratura()">Invia Timbratura</button>
-
-    <p id="risultato"></p>
-
-    <script>
-        let gpsCoords = "";
-        let deviceId = "";
-        let fingerprint = "";
-        let userIp = "";
-
-        // 1️⃣ RILEVAZIONE POSIZIONE GPS
-        function getGPS() {
-            if (navigator.geolocation) {
-                navigator.geolocation.getCurrentPosition(
-                    function (position) {
-                        gpsCoords = position.coords.latitude + "," + position.coords.longitude;
-                    },
-                    function (error) {
-                        console.error("Errore GPS:", error);
-                        gpsCoords = "Errore GPS";
-                    }
-                );
-            } else {
-                gpsCoords = "Non supportato";
-            }
-        }
-
-        // 2️⃣ RILEVAZIONE DEVICE ID (User-Agent)
-        function getDeviceId() {
-            deviceId = navigator.userAgent;
-        }
-
-        // 3️⃣ RILEVAZIONE FINGERPRINT
-        function getFingerprint() {
-            Fingerprint2.get(function (components) {
-                fingerprint = Fingerprint2.x64hash128(components.map(pair => pair.value).join(), 31);
-            });
-        }
-
-        // 4️⃣ RILEVAZIONE INDIRIZZO IP PUBBLICO
-        function getUserIP() {
-            fetch("https://api64.ipify.org?format=json")
-                .then(response => response.json())
-                .then(data => {
-                    userIp = data.ip;
-                })
-                .catch(error => {
-                    console.error("Errore IP:", error);
-                    userIp = "Errore IP";
-                });
-        }
-
-        // 5️⃣ INVIA TIMBRATURA
-        function inviaTimbratura() {
-            const nome = document.getElementById("nome").value;
-            const sede = document.getElementById("sede").value;
-            const tipo = document.getElementById("tipo").value;
-
-            if (!gpsCoords || !deviceId || !fingerprint || !userIp || 
-                gpsCoords === "" || deviceId === "" || fingerprint === "" || userIp === "") {
-                alert("⚠️ Attendere che tutti i dati siano caricati prima di inviare.");
-                return;
-            }
-
-            const url = "https://script.google.com/macros/s/AKfycbw8mSPr3qoWBsbkmtM85VRQXYw0IT_AN5srYNpeqFEQQrsPDR89Z3Xai5soSzyg8uveqg/exec"
-                + "?nome=" + encodeURIComponent(nome)
-                + "&sede=" + encodeURIComponent(sede)
-                + "&tipo=" + encodeURIComponent(tipo)
-                + "&gps=" + encodeURIComponent(gpsCoords)
-                + "&deviceId=" + encodeURIComponent(deviceId)
-                + "&fingerprint=" + encodeURIComponent(fingerprint)
-                + "&ip=" + encodeURIComponent(userIp);
-
-            fetch(url)
-                .then(response => response.text())
-                .then(data => {
-                    document.getElementById("risultato").innerText = data;
-                })
-                .catch(error => {
-                    console.error("Errore invio:", error);
-                    document.getElementById("risultato").innerText = "Errore di invio.";
-                });
-        }
-
-        // Chiamate iniziali per raccogliere i dati
-        getGPS();
-        getDeviceId();
-        getFingerprint();
-        getUserIP();
-    </script>
-
+    <button onclick="inviaDati()">Invia</button>
 </body>
 </html>
