@@ -4,43 +4,11 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Timbratura</title>
-    <script>
-        function inviaDati() {
-            let nome = document.getElementById("nome").value;
-            let tipo = document.getElementById("tipo").value;
-            let sede = document.getElementById("sede").value; // Nuovo campo sede
-            let url = "https://script.google.com/macros/s/AKfycbzMczlv553PVs-II_n_Tg_ELRmSW_RbmRq84ZqwEfsSwaZrhhRZNZ9tat7duGk_cvAd/exec";
-
-            if (!nome || !tipo || !sede) {
-                alert("Compila tutti i campi!");
-                return;
-            }
-
-            navigator.geolocation.getCurrentPosition(
-                function(position) {
-                    let gps = position.coords.latitude + "," + position.coords.longitude;
-
-                    fetch("https://api64.ipify.org?format=json")
-                        .then(response => response.json())
-                        .then(data => {
-                            let ip = data.ip;
-
-                            let requestUrl = `${url}?nome=${encodeURIComponent(nome)}&tipo=${encodeURIComponent(tipo)}&sede=${encodeURIComponent(sede)}&gps=${encodeURIComponent(gps)}&ip=${encodeURIComponent(ip)}`;
-
-                            window.location.href = requestUrl;
-                        })
-                        .catch(error => alert("Errore nel recupero IP: " + error));
-                },
-                function(error) {
-                    alert("Errore nel recupero della posizione: " + error.message);
-                }
-            );
-        }
-    </script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/FingerprintJS/3.3.6/fingerprint2.min.js"></script>
 </head>
 <body>
-    <h2>Registrazione Timbratura</h2>
-
+    <h2>Timbratura</h2>
+    
     <label for="nome">Nome:</label>
     <select id="nome">
         <option value="Antonino Stefania">Antonino Stefania</option>
@@ -71,13 +39,13 @@
         <option value="Spina Arianna">Spina Arianna</option>
         <option value="Trione Pietro">Trione Pietro</option>
         <option value="Vischi Vittoria">Vischi Vittoria</option>
-    </select><br><br>
-
+    </select>
+    
     <label for="tipo">Tipo:</label>
     <select id="tipo">
         <option value="ingresso">Ingresso</option>
         <option value="uscita">Uscita</option>
-    </select><br><br>
+    </select>
 
     <label for="sede">Sede:</label>
     <select id="sede">
@@ -86,7 +54,65 @@
         <option value="Bisceglie">Bisceglie</option>
         <option value="Trani">Trani</option>
     </select><br><br>
+    
+    <button onclick="timbratura()">Timbra</button>
+    
+    <script>
+        function getCookie(name) {
+            let match = document.cookie.match(new RegExp('(^| )' + name + '=([^;]+)'));
+            return match ? match[2] : null;
+        }
 
-    <button onclick="inviaDati()">Invia</button>
+        function setCookie(name, value, days) {
+            let expires = new Date();
+            expires.setTime(expires.getTime() + (days * 24 * 60 * 60 * 1000));
+            document.cookie = name + "=" + value + "; path=/; expires=" + expires.toUTCString();
+        }
+
+        function generateDeviceID() {
+            let deviceID = getCookie("deviceID");
+            if (!deviceID) {
+                deviceID = crypto.randomUUID();
+                setCookie("deviceID", deviceID, 365 * 10);
+            }
+            return deviceID;
+        }
+
+        function getFingerprint(callback) {
+            Fingerprint2.get(components => {
+                let values = components.map(component => component.value);
+                let fingerprint = Fingerprint2.x64hash128(values.join(''), 31);
+                callback(fingerprint);
+            });
+        }
+
+        function getLocationAndSendData(fingerprint, deviceID) {
+            navigator.geolocation.getCurrentPosition(position => {
+                let lat = position.coords.latitude;
+                let lon = position.coords.longitude;
+                let nome = document.getElementById("nome").value;
+                let tipo = document.getElementById("tipo").value;
+                
+                let url = "TUA_WEB_APP_URL" + 
+                          "?nome=" + encodeURIComponent(nome) + 
+                          "&tipo=" + encodeURIComponent(tipo) + 
+                          "&gps=" + encodeURIComponent(lat + "," + lon) +
+                          "&deviceId=" + encodeURIComponent(deviceID) + 
+                          "&fingerprint=" + encodeURIComponent(fingerprint);
+
+                fetch(url)
+                    .then(response => response.text())
+                    .then(data => alert(data))
+                    .catch(error => console.error('Errore:', error));
+            }, () => alert("Abilita la geolocalizzazione per timbrare."));
+        }
+
+        function timbratura() {
+            let deviceID = generateDeviceID();
+            getFingerprint(fingerprint => {
+                getLocationAndSendData(fingerprint, deviceID);
+            });
+        }
+    </script>
 </body>
 </html>
