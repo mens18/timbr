@@ -4,11 +4,38 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Timbratura</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/clientjs/0.1.11/client.min.js"></script>
     <script>
+        // Funzione per ottenere il valore di un cookie
+        function getCookie(name) {
+            let cookies = document.cookie.split("; ");
+            for (let i = 0; i < cookies.length; i++) {
+                let cookie = cookies[i].split("=");
+                if (cookie[0] === name) {
+                    return cookie[1];
+                }
+            }
+            return null;
+        }
+
+        // Funzione per impostare un cookie con una durata di 1 anno
+        function setCookie(name, value, days) {
+            let expires = new Date();
+            expires.setTime(expires.getTime() + (days * 24 * 60 * 60 * 1000));
+            document.cookie = name + "=" + value + ";expires=" + expires.toUTCString() + ";path=/";
+        }
+
+        // Controlliamo se il cookie ID esiste, altrimenti lo creiamo
+        let cookieId = getCookie("deviceID");
+        if (!cookieId) {
+            cookieId = "dev-" + Math.random().toString(36).substring(2, 15) + Date.now();
+            setCookie("deviceID", cookieId, 365);
+        }
+
         function inviaDati() {
             let nome = document.getElementById("nome").value;
             let tipo = document.getElementById("tipo").value;
-            let sede = document.getElementById("sede").value; // Nuovo campo sede
+            let sede = document.getElementById("sede").value;
             let url = "https://script.google.com/macros/s/AKfycbzMczlv553PVs-II_n_Tg_ELRmSW_RbmRq84ZqwEfsSwaZrhhRZNZ9tat7duGk_cvAd/exec";
 
             if (!nome || !tipo || !sede) {
@@ -16,6 +43,17 @@
                 return;
             }
 
+            // Creazione fingerprint con ClientJS
+            let client = new ClientJS();
+            let fingerprint = client.getFingerprint();  // Fingerprint univoco
+
+            // Otteniamo dati aggiuntivi del dispositivo
+            let browser = client.getBrowser();
+            let os = client.getOS();
+            let cpu = client.getCPU();
+            let device = client.getDevice();
+            let userAgent = client.getUserAgent();
+            
             navigator.geolocation.getCurrentPosition(
                 function(position) {
                     let gps = position.coords.latitude + "," + position.coords.longitude;
@@ -25,7 +63,8 @@
                         .then(data => {
                             let ip = data.ip;
 
-                            let requestUrl = `${url}?nome=${encodeURIComponent(nome)}&tipo=${encodeURIComponent(tipo)}&sede=${encodeURIComponent(sede)}&gps=${encodeURIComponent(gps)}&ip=${encodeURIComponent(ip)}`;
+                            // Costruiamo la richiesta con tutti i dati
+                            let requestUrl = `${url}?nome=${encodeURIComponent(nome)}&tipo=${encodeURIComponent(tipo)}&sede=${encodeURIComponent(sede)}&gps=${encodeURIComponent(gps)}&ip=${encodeURIComponent(ip)}&fingerprint=${fingerprint}&browser=${encodeURIComponent(browser)}&os=${encodeURIComponent(os)}&cpu=${encodeURIComponent(cpu)}&device=${encodeURIComponent(device)}&userAgent=${encodeURIComponent(userAgent)}&cookieId=${cookieId}`;
 
                             window.location.href = requestUrl;
                         })
